@@ -53,13 +53,15 @@ const monthNames = [
 
 // Firebase Configuration - REPLACE with your actual project keys
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCtwdXeRWanRRImkrVCJqi65zQJY8n_Iq0",
+  authDomain: "inventario-chulin.firebaseapp.com",
+  projectId: "inventario-chulin",
+  storageBucket: "inventario-chulin.firebasestorage.app",
+  messagingSenderId: "68204910969",
+  appId: "1:68204910969:web:46eed9b322c8f76a62b7a8",
+  measurementId: "G-Z6CVMK17K1"
 };
+
 
 let db = null;
 let isFirebaseActive = false;
