@@ -65,9 +65,12 @@
                 ¡Listo! ¡Vamos al show!
             </div>
 
-            <footer class="screen-footer">
+            <footer class="screen-footer" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
                 <button id="btn-inventory-ready" class="action-btn" disabled onclick="onInventoryReady()">
                     Listo
+                </button>
+                <button id="btn-end-day" class="action-btn btn-danger" onclick="promptEndDay()">
+                    Se terminó el día
                 </button>
             </footer>
         </section>
@@ -302,6 +305,17 @@
             <div class="modal-actions">
                 <button class="action-btn btn-cancel" onclick="closeModal('event-saturation-modal')">Cancelar</button>
                 <button class="action-btn btn-confirm" onclick="confirmSaveEvent()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: CONFIRMACIÓN FIN DE DÍA -->
+    <div id="confirm-end-day-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">¿Terminar el día?</h3>
+            <p class="modal-text" style="margin: 10px 0 20px 0; font-size: 0.95rem; color: var(--color-text-gray);">Esto restablecerá toda la lista de verificación a su estado inicial. No se puede deshacer.</p>
+            <div class="modal-actions col-layout">
+                <button class="action-btn btn-danger" onclick="confirmEndDay()">Sí, restablecer</button>
+                <button class="action-btn btn-no" onclick="closeModal('confirm-end-day-modal')">Cancelar</button>
             </div>
         </div>
     </div>

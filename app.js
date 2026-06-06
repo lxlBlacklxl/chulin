@@ -141,6 +141,17 @@ async function loadData() {
                 scheduledEvents.push(doc.data());
             });
 
+            // 3. Load show inventory checklist state
+            const stateDoc = await db.collection('show_state').doc('current').get();
+            if (stateDoc.exists) {
+                const stateData = stateDoc.data();
+                checkedSimpleItems = stateData.checkedSimpleItems || {};
+                checkedSubmenuItems = stateData.checkedSubmenuItems || {};
+            } else {
+                checkedSimpleItems = {};
+                checkedSubmenuItems = {};
+            }
+
             showToast("Base de datos sincronizada", "success");
         } catch (error) {
             console.error("Error cargando de Firestore, usando local:", error);
@@ -190,6 +201,27 @@ function loadLocalDataFallback() {
         scheduledEvents = [];
         localStorage.setItem('events', JSON.stringify(scheduledEvents));
     }
+
+    const savedSimple = localStorage.getItem('checked_simple_items');
+    const savedSubmenu = localStorage.getItem('checked_submenu_items');
+    if (savedSimple && savedSubmenu) {
+        checkedSimpleItems = JSON.parse(savedSimple);
+        checkedSubmenuItems = JSON.parse(savedSubmenu);
+    } else {
+        checkedSimpleItems = {};
+        checkedSubmenuItems = {};
+    }
+}
+
+function saveShowState() {
+    if (isFirebaseActive) {
+        db.collection('show_state').doc('current').set({
+            checkedSimpleItems: checkedSimpleItems,
+            checkedSubmenuItems: checkedSubmenuItems
+        }).catch(err => console.error("Error al guardar checklist en Firestore:", err));
+    }
+    localStorage.setItem('checked_simple_items', JSON.stringify(checkedSimpleItems));
+    localStorage.setItem('checked_submenu_items', JSON.stringify(checkedSubmenuItems));
 }
 
 // Save Bodega Items and Counts
@@ -248,7 +280,6 @@ function navigateTo(screenId) {
             checkLowStock();
             buildAddRadioList();
         } else if (screenId === 'inventory') {
-            resetShowInventory();
             renderShowInventory();
         } else if (screenId === 'calendar') {
             renderCalendar();
@@ -334,7 +365,13 @@ function initShowInventory() {
     const uniqueItems = Array.from(new Set([...commonInventoryItems, ...specificItems]));
     showItems = uniqueItems.sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
-    // Reset checklists
+    // Only set default false if not already loaded
+    if (Object.keys(checkedSimpleItems).length === 0 && Object.keys(checkedSubmenuItems).length === 0) {
+        resetCheckedStates();
+    }
+}
+
+function resetCheckedStates() {
     checkedSimpleItems = {};
     checkedSubmenuItems = {};
 
@@ -351,15 +388,7 @@ function initShowInventory() {
 }
 
 function resetShowInventory() {
-    // Clear selections
-    for (let key in checkedSimpleItems) {
-        checkedSimpleItems[key] = false;
-    }
-    for (let parent in checkedSubmenuItems) {
-        for (let child in checkedSubmenuItems[parent]) {
-            checkedSubmenuItems[parent][child] = false;
-        }
-    }
+    resetCheckedStates();
     document.getElementById('btn-inventory-ready').disabled = true;
     document.getElementById('show-ready-message').classList.add('hidden');
 }
@@ -409,6 +438,7 @@ function handleInventoryCardClick(item) {
         openSubmenuModal(item);
     } else {
         checkedSimpleItems[item] = !checkedSimpleItems[item];
+        saveShowState();
         renderShowInventory();
     }
 }
@@ -435,6 +465,7 @@ function renderSubmenuItems() {
         row.innerHTML = `• ${sub}`;
         row.onclick = () => {
             states[sub] = !states[sub];
+            saveShowState();
             renderSubmenuItems();
             renderShowInventory();
         };
@@ -451,6 +482,7 @@ function confirmSelectAllSubmenu() {
     for (let sub in states) {
         states[sub] = true;
     }
+    saveShowState();
     closeModal('confirm-select-all-modal');
     renderSubmenuItems();
     renderShowInventory();
@@ -484,6 +516,22 @@ function onInventoryReady() {
     const msg = document.getElementById('show-ready-message');
     msg.classList.remove('hidden');
     showToast('¡Inventario verificado con éxito!', 'success');
+}
+
+function promptEndDay() {
+    openModal('confirm-end-day-modal');
+}
+
+function confirmEndDay() {
+    resetCheckedStates();
+    saveShowState();
+    closeModal('confirm-end-day-modal');
+    
+    document.getElementById('show-ready-message').classList.add('hidden');
+    document.getElementById('btn-inventory-ready').disabled = true;
+    
+    renderShowInventory();
+    showToast('¡Día terminado! Inventario restablecido.', 'success');
 }
 
 

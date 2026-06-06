@@ -423,6 +423,14 @@ body {
     background-color: var(--color-blue-hover);
 }
 
+.btn-danger {
+    background-color: var(--color-red);
+    box-shadow: 0 4px 10px rgba(255, 82, 82, 0.3);
+}
+.btn-danger:hover:not(:disabled) {
+    background-color: var(--color-red-hover);
+}
+
 .title-white {
     font-size: 1.75rem;
     font-weight: 700;
