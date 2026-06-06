@@ -51,26 +51,107 @@ const monthNames = [
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
+// Firebase Configuration - REPLACE with your actual project keys
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+let db = null;
+let isFirebaseActive = false;
+
+// Check if configuration has been replaced by the user
+if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        isFirebaseActive = true;
+        console.log("Firebase Firestore inicializado.");
+    } catch (e) {
+        console.error("Error al inicializar Firebase:", e);
+    }
+}
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    initShowInventory();
-    buildAddRadioList();
-    
-    // Set Calendar to Current System Date
-    const today = new Date();
-    currentYear = today.getFullYear();
-    currentMonth = today.getMonth();
-    
-    // Bind Back Button handler for physical key simulation / popstate
-    window.addEventListener('popstate', handleHardwareBack);
-    // Push initial state
-    window.history.replaceState({ screen: 'main' }, 'Main', '');
+    loadData().then(() => {
+        initShowInventory();
+        buildAddRadioList();
+        
+        // Set Calendar to Current System Date
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+        
+        // Bind Back Button handler for physical key simulation / popstate
+        window.addEventListener('popstate', handleHardwareBack);
+        // Push initial state
+        window.history.replaceState({ screen: 'main' }, 'Main', '');
+    });
 });
 
-// Load data from LocalStorage or Fallback
-function loadData() {
-    // 1. Bodega Items
+// Load data from Firestore or LocalStorage Fallback
+async function loadData() {
+    if (isFirebaseActive) {
+        showToast("Conectando con base de datos...", "info");
+        try {
+            // 1. Load bodega items & counts
+            const bodegaSnap = await db.collection('bodega').get();
+            if (!bodegaSnap.empty) {
+                bodegaItems = [];
+                bodegaCounts = {};
+                bodegaSnap.forEach(doc => {
+                    const data = doc.data();
+                    bodegaItems.push(data.name);
+                    bodegaCounts[data.name] = data.count || 0;
+                });
+            } else {
+                // Initialize database with defaults
+                bodegaItems = [...initialBodegaItems];
+                bodegaCounts = {};
+                const batch = db.batch();
+                bodegaItems.forEach(item => {
+                    let count = 24;
+                    if (item.startsWith("Taza")) {
+                        count = 12;
+                    } else if (item === "Slime" || item === "Fomi") {
+                        count = 20;
+                    } else if (item === "Drones") {
+                        count = 5;
+                    } else if (item.includes("Cajas")) {
+                        count = 10;
+                    }
+                    bodegaCounts[item] = count;
+                    const docRef = db.collection('bodega').doc(item);
+                    batch.set(docRef, { name: item, count: count });
+                });
+                await batch.commit();
+            }
+
+            // 2. Load events
+            const eventsSnap = await db.collection('events').get();
+            scheduledEvents = [];
+            eventsSnap.forEach(doc => {
+                scheduledEvents.push(doc.data());
+            });
+
+            showToast("Base de datos sincronizada", "success");
+        } catch (error) {
+            console.error("Error cargando de Firestore, usando local:", error);
+            showToast("Error de conexión. Usando almacenamiento local.", "error");
+            loadLocalDataFallback();
+        }
+    } else {
+        showToast("Ejecutando en Modo Local (Firebase no configurado)", "info");
+        loadLocalDataFallback();
+    }
+}
+
+function loadLocalDataFallback() {
     const savedItems = localStorage.getItem('bodega_items');
     if (savedItems) {
         bodegaItems = JSON.parse(savedItems);
@@ -79,7 +160,6 @@ function loadData() {
         localStorage.setItem('bodega_items', JSON.stringify(bodegaItems));
     }
 
-    // 2. Bodega Counts
     const savedCounts = localStorage.getItem('bodega_counts');
     if (savedCounts) {
         bodegaCounts = JSON.parse(savedCounts);
@@ -101,7 +181,6 @@ function loadData() {
         localStorage.setItem('bodega_counts', JSON.stringify(bodegaCounts));
     }
 
-    // 3. Events
     const savedEvents = localStorage.getItem('events');
     if (savedEvents) {
         scheduledEvents = JSON.parse(savedEvents);
@@ -112,13 +191,37 @@ function loadData() {
 }
 
 // Save Bodega Items and Counts
-function saveBodegaData() {
+function saveBodegaData(item) {
+    if (isFirebaseActive && item) {
+        db.collection('bodega').doc(item).set({ name: item, count: bodegaCounts[item] })
+            .catch(err => console.error("Error al guardar bodega en Firestore:", err));
+    }
     localStorage.setItem('bodega_items', JSON.stringify(bodegaItems));
     localStorage.setItem('bodega_counts', JSON.stringify(bodegaCounts));
 }
 
-// Save Events
-function saveEventsData() {
+function saveNewBodegaItem(item) {
+    if (isFirebaseActive && item) {
+        db.collection('bodega').doc(item).set({ name: item, count: 0 })
+            .catch(err => console.error("Error al crear artículo en Firestore:", err));
+    }
+    localStorage.setItem('bodega_items', JSON.stringify(bodegaItems));
+    localStorage.setItem('bodega_counts', JSON.stringify(bodegaCounts));
+}
+
+function saveEvent(event) {
+    if (isFirebaseActive && event) {
+        db.collection('events').doc(String(event.id)).set(event)
+            .catch(err => console.error("Error al guardar evento en Firestore:", err));
+    }
+    localStorage.setItem('events', JSON.stringify(scheduledEvents));
+}
+
+function removeEvent(eventId) {
+    if (isFirebaseActive && eventId) {
+        db.collection('events').doc(String(eventId)).delete()
+            .catch(err => console.error("Error al eliminar evento en Firestore:", err));
+    }
     localStorage.setItem('events', JSON.stringify(scheduledEvents));
 }
 
@@ -424,7 +527,7 @@ function renderBodegaList() {
 function decrementBodegaItem(item) {
     if (bodegaCounts[item] && bodegaCounts[item] > 0) {
         bodegaCounts[item]--;
-        saveBodegaData();
+        saveBodegaData(item);
         renderBodegaList();
     }
 }
@@ -462,7 +565,7 @@ function createNewBodegaItem() {
     bodegaItems.push(name);
     bodegaCounts[name] = 0;
     
-    saveBodegaData();
+    saveNewBodegaItem(name);
     closeModal('new-item-modal');
     renderBodegaList();
     showToast(`Artículo "${name}" creado`, 'success');
@@ -542,7 +645,7 @@ function saveAddBodegaItem() {
     }
 
     bodegaCounts[item] = (bodegaCounts[item] || 0) + totalToAdd;
-    saveBodegaData();
+    saveBodegaData(item);
     closeModal('add-item-modal');
     renderBodegaList();
     showToast(`Se agregaron ${totalToAdd} unidades a ${item}`, 'success');
@@ -749,7 +852,7 @@ function confirmSaveEvent() {
     };
 
     scheduledEvents.push(newEvent);
-    saveEventsData();
+    saveEvent(newEvent);
 
     if (hasReminder) {
         showToast(`Recordatorio programado para: ${name}`, 'info');
@@ -800,7 +903,7 @@ function renderEventsList() {
 
 function deleteEvent(eventId) {
     scheduledEvents = scheduledEvents.filter(ev => ev.id !== eventId);
-    saveEventsData();
+    removeEvent(eventId);
     renderEventsList();
     showToast('Evento eliminado', 'info');
 }
