@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Chulín</title>
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background image and overlay -->
+    <div class="app-background"></div>
+    <div class="app-overlay"></div>
+
+    <div id="app" class="app-container">
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- 1. PANTALLA PRINCIPAL -->
+        <section id="screen-main" class="screen active-screen">
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <span class="material-icons star-pulse">star</span>
+                </div>
+                <h1>Inventario Chulín</h1>
+            </div>
+            <div class="menu-container">
+                <button class="menu-btn btn-show" onclick="navigateTo('inventory')">
+                    <span class="material-icons">star</span>
+                    <span>Hora del Show</span>
+                </button>
+                <button class="menu-btn btn-bodega" onclick="navigateTo('bodega')">
+                    <span class="material-icons">home</span>
+                    <span>Inventario Bodega</span>
+                </button>
+                <button class="menu-btn btn-agenda" onclick="navigateTo('calendar')">
+                    <span class="material-icons">add</span>
+                    <span>Agendar Evento</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. PANTALLA HORA DEL SHOW (INVENTARIO) -->
+        <section id="screen-inventory" class="screen">
+            <header class="screen-header">
+                <button class="back-btn" onclick="navigateTo('main')">
+                    <span class="material-icons">arrow_back</span>
+                    <span>Volver</span>
+                </button>
+                <h2>Inventario</h2>
+            </header>
+
+            <div class="grid-container" id="inventory-grid">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Toast-like Success Message inside screen -->
+            <div id="show-ready-message" class="ready-message hidden">
+                ¡Listo! ¡Vamos al show!
+            </div>
+
+            <footer class="screen-footer">
+                <button id="btn-inventory-ready" class="action-btn" disabled onclick="onInventoryReady()">
+                    Listo
+                </button>
+            </footer>
+        </section>
+
+        <!-- 3. PANTALLA INVENTARIO BODEGA -->
+        <section id="screen-bodega" class="screen">
+            <header class="screen-header">
+                <div class="header-actions">
+                    <button class="action-btn btn-add" onclick="openModal('add-item-modal')">
+                        <span class="material-icons">add</span>
+                        <span>Agregar</span>
+                    </button>
+                    <button class="action-btn btn-new" onclick="openModal('new-item-modal')">
+                        <span>Nuevo</span>
+                    </button>
+                </div>
+                <button class="back-btn text-only" onclick="navigateTo('main')">
+                    &lt; Volver
+                </button>
+            </header>
+
+            <div class="bodega-content">
+                <h2 class="title-white">Inventario Bodega</h2>
+
+                <div class="table-header">
+                    <span class="col-item">Objeto</span>
+                    <span class="col-qty">Cantidad / Acción</span>
+                </div>
+
+                <div class="table-list" id="bodega-list">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. PANTALLA CALENDARIO (AGENDAR EVENTO) -->
+        <section id="screen-calendar" class="screen">
+            <header class="screen-header">
+                <button class="back-btn" onclick="navigateTo('main')">
+                    <span class="material-icons">arrow_back</span>
+                    <span>Volver</span>
+                </button>
+            </header>
+
+            <div class="calendar-wrapper">
+                <h2 class="title-white">Seleccionar Fecha</h2>
+
+                <!-- Custom Material-like Calendar -->
+                <div class="custom-datepicker">
+                    <div class="datepicker-header">
+                        <button class="cal-nav-btn" onclick="changeMonth(-1)">
+                            <span class="material-icons">chevron_left</span>
+                        </button>
+                        <span id="calendar-month-year">Junio 2026</span>
+                        <button class="cal-nav-btn" onclick="changeMonth(1)">
+                            <span class="material-icons">chevron_right</span>
+                        </button>
+                    </div>
+                    <div class="datepicker-weekdays">
+                        <span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span>
+                    </div>
+                    <div class="datepicker-days" id="calendar-days">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <button class="action-btn btn-list-events" onclick="navigateTo('list')">
+                    Ver lista de eventos
+                </button>
+
+                <!-- Status of selected date -->
+                <div id="selected-date-status-box" class="selected-status-box hidden">
+                    <span class="status-label">Fecha seleccionada:</span>
+                    <span id="status-selected-date" class="status-date-val">--/--/----</span>
+                    <span id="status-selected-desc" class="status-desc-val"></span>
+                    <button id="btn-schedule-on-date" class="action-btn btn-schedule-confirm" onclick="proceedToEventDetails()">
+                        Agendar en esta fecha
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. PANTALLA DETALLES DEL EVENTO -->
+        <section id="screen-details" class="screen">
+            <header class="screen-header">
+                <button class="back-btn" onclick="navigateTo('calendar')">
+                    <span class="material-icons">arrow_back</span>
+                    <span>Volver</span>
+                </button>
+                <h2>Detalles del Evento</h2>
+                <div style="width: 70px;"></div> <!-- Spacer -->
+            </header>
+
+            <div class="details-content">
+                <div class="glass-card">
+                    <h3 id="details-event-date" class="details-date-title">Fecha: --/--/----</h3>
+                    
+                    <div class="input-group">
+                        <label for="input-event-name">Nombre del Evento</label>
+                        <input type="text" id="input-event-name" placeholder="Ej: Show Infantil Chulín" oninput="validateDetailsForm()">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="input-event-time">Hora del Evento</label>
+                        <input type="text" id="input-event-time" placeholder="Ej: 5:00 PM" oninput="validateDetailsForm()">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="input-event-location">Ubicación / Lugar</label>
+                        <input type="text" id="input-event-location" placeholder="Ej: Salón de Eventos Jardín" oninput="validateDetailsForm()">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="input-event-reminder">
+                        <label for="input-event-reminder">Agregar recordatorio</label>
+                    </div>
+
+                    <button id="btn-save-event" class="action-btn btn-save" disabled onclick="handleSaveEvent()">
+                        Guardar Evento
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. PANTALLA LISTA DE EVENTOS -->
+        <section id="screen-list" class="screen">
+            <header class="screen-header">
+                <button class="action-btn btn-add-event" onclick="navigateTo('calendar')">
+                    <span class="material-icons">add</span>
+                    <span>Nuevo Evento</span>
+                </button>
+                <button class="back-btn text-only" onclick="navigateTo('calendar')">
+                    &lt; Volver
+                </button>
+            </header>
+
+            <div class="list-content">
+                <h2 class="title-white">Próximos Eventos</h2>
+                <div class="events-list" id="events-list-container">
+                    <!-- Se llenará dinámicamente o mostrará vacío -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL: ALERTA STOCK BAJO -->
+    <div id="low-stock-modal" class="modal-overlay">
+        <div class="modal-content text-left">
+            <h3 class="modal-title text-danger">¡Alerta de Inventario Bajo!</h3>
+            <p class="modal-text">Los siguientes objetos tienen 10 unidades o menos:</p>
+            <ul class="modal-bullet-list" id="low-stock-list">
+                <!-- Dinámico -->
+            </ul>
+            <div class="modal-actions">
+                <button class="action-btn btn-ok" onclick="closeModal('low-stock-modal')">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NUEVO ARTÍCULO BODEGA -->
+    <div id="new-item-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">Nuevo Objeto</h3>
+            <div class="input-group">
+                <label for="new-item-name" class="modal-label">Nombre del nuevo objeto:</label>
+                <input type="text" id="new-item-name" placeholder="Ej: Bocina, Cable...">
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn btn-cancel" onclick="closeModal('new-item-modal')">Cancelar</button>
+                <button class="action-btn btn-confirm" onclick="createNewBodegaItem()">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AGREGAR A BODEGA -->
+    <div id="add-item-modal" class="modal-overlay">
+        <div class="modal-content text-left">
+            <h3 class="modal-title">Agregar a Bodega</h3>
+            
+            <label class="modal-label">Seleccionar objeto:</label>
+            <div class="modal-radio-list" id="add-item-radio-list">
+                <!-- Se llena con todos los artículos de la bodega -->
+            </div>
+
+            <!-- Dynamic inputs based on item -->
+            <div id="dynamic-add-inputs" class="dynamic-inputs">
+                <!-- Se inyecta por JS -->
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-cancel" onclick="closeModal('add-item-modal')">Cancelar</button>
+                <button class="action-btn btn-confirm" onclick="saveAddBodegaItem()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SUBMENÚ DE ARTÍCULO (HORA DEL SHOW) -->
+    <div id="submenu-modal" class="modal-overlay">
+        <div class="modal-content text-left">
+            <h3 class="modal-title" id="submenu-modal-title">Nombre del Artículo</h3>
+            
+            <button class="action-btn btn-select-all" onclick="promptSelectAllSubmenu()">
+                Seleccionar todo
+            </button>
+
+            <div class="submenu-items-list" id="submenu-items-list">
+                <!-- Lista de sub-ítems -->
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-close-modal" onclick="closeSubmenuModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMACIÓN SELECCIONAR TODO -->
+    <div id="confirm-select-all-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">¿Seguro que llevas todo?</h3>
+            <div class="modal-actions col-layout">
+                <button class="action-btn btn-yes" onclick="confirmSelectAllSubmenu()">Sí</button>
+                <button class="action-btn btn-no" onclick="closeModal('confirm-select-all-modal')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AVISO EXCESO EVENTOS -->
+    <div id="event-saturation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">¡Aviso!</h3>
+            <p class="modal-text">Ya tienes 3 eventos agendados para este día. ¿Seguro que quieres agendar uno más?</p>
+            <div class="modal-actions">
+                <button class="action-btn btn-cancel" onclick="closeModal('event-saturation-modal')">Cancelar</button>
+                <button class="action-btn btn-confirm" onclick="confirmSaveEvent()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
