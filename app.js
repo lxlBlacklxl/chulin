@@ -51,15 +51,13 @@ const monthNames = [
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
-// Firebase Configuration - REPLACE with your actual project keys
 const firebaseConfig = {
-  apiKey: "AIzaSyCtwdXeRWanRRImkrVCJqi65zQJY8n_Iq0",
-  authDomain: "inventario-chulin.firebaseapp.com",
-  projectId: "inventario-chulin",
-  storageBucket: "inventario-chulin.firebasestorage.app",
-  messagingSenderId: "68204910969",
-  appId: "1:68204910969:web:46eed9b322c8f76a62b7a8",
-  measurementId: "G-Z6CVMK17K1"
+  apiKey: "AIzaSyAL6EaHEls_t5wV6rPHazjgJm73OZE2Ppw",
+  authDomain: "inventario-715bf01d.firebaseapp.com",
+  projectId: "inventario-715bf01d",
+  storageBucket: "inventario-715bf01d.firebasestorage.app",
+  messagingSenderId: "42478095151",
+  appId: "1:42478095151:web:56fa23dd539b031226efda"
 };
 
 
