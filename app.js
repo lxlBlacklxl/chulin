@@ -91,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('popstate', handleHardwareBack);
         // Push initial state
         window.history.replaceState({ screen: 'main' }, 'Main', '');
+
+        // Show startup reminder
+        openModal('reminder-modal');
     });
 });
 
@@ -566,6 +569,9 @@ function renderBodegaList() {
                 <button class="row-action-btn" onclick="decrementBodegaItem('${item}')" ${isOutOfStock ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
                     <span class="material-icons">remove</span>
                 </button>
+                <button class="row-action-btn btn-delete-item" onclick="promptDeleteBodegaItem('${item}')">
+                    <span class="material-icons" style="color: var(--color-red);">delete</span>
+                </button>
             </div>
         `;
         list.appendChild(row);
@@ -577,6 +583,40 @@ function decrementBodegaItem(item) {
         bodegaCounts[item]--;
         saveBodegaData(item);
         renderBodegaList();
+    }
+}
+
+let itemToDelete = '';
+
+function promptDeleteBodegaItem(item) {
+    itemToDelete = item;
+    document.getElementById('delete-item-name-placeholder').textContent = item;
+    openModal('confirm-delete-item-modal');
+}
+
+function confirmDeleteBodegaItem() {
+    if (itemToDelete) {
+        // 1. Remove from local arrays
+        bodegaItems = bodegaItems.filter(i => i !== itemToDelete);
+        delete bodegaCounts[itemToDelete];
+        
+        // 2. Remove from Firestore if active
+        if (isFirebaseActive) {
+            db.collection('bodega').doc(itemToDelete).delete()
+                .catch(err => console.error("Error al eliminar artículo de Firestore:", err));
+        }
+        
+        // 3. Save local data
+        localStorage.setItem('bodega_items', JSON.stringify(bodegaItems));
+        localStorage.setItem('bodega_counts', JSON.stringify(bodegaCounts));
+        
+        // 4. Update UI
+        closeModal('confirm-delete-item-modal');
+        renderBodegaList();
+        buildAddRadioList();
+        showToast(`Artículo "${itemToDelete}" eliminado`, 'info');
+        
+        itemToDelete = '';
     }
 }
 

@@ -816,6 +816,13 @@ body {
     background: rgba(255, 82, 82, 0.12);
 }
 
+.btn-delete-item {
+    color: var(--color-red);
+}
+.btn-delete-item:hover {
+    background: rgba(255, 82, 82, 0.12) !important;
+}
+
 .no-events {
     text-align: center;
     color: var(--color-text-gray);

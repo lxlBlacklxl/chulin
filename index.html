@@ -320,6 +320,34 @@
         </div>
     </div>
 
+    <!-- MODAL: CONFIRMACIÓN ELIMINAR ARTÍCULO BODEGA -->
+    <div id="confirm-delete-item-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title text-danger">¿Eliminar artículo?</h3>
+            <p class="modal-text">¿Estás seguro de que quieres eliminar <strong id="delete-item-name-placeholder"></strong> de la bodega? Esta acción no se puede deshacer.</p>
+            <div class="modal-actions col-layout">
+                <button class="action-btn btn-danger" onclick="confirmDeleteBodegaItem()">Sí, eliminar</button>
+                <button class="action-btn btn-no" onclick="closeModal('confirm-delete-item-modal')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RECORDATORIO INICIAL -->
+    <div id="reminder-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title" style="color: var(--color-gold); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span class="material-icons">warning</span>
+                <span>¡Recordatorio Importante!</span>
+            </h3>
+            <p class="modal-text" style="font-size: 1.1rem; color: #ffffff; font-weight: 500; margin: 10px 0;">
+                Revisar nivel de gasolina y carga de tag.
+            </p>
+            <div class="modal-actions" style="justify-content: center;">
+                <button class="action-btn btn-confirm" onclick="closeModal('reminder-modal')" style="width: 80%;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
