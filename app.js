@@ -554,7 +554,7 @@ function renderBodegaList() {
                 qtyText = `${remaining} taza${remaining !== 1 ? 's' : ''}`;
             }
         } else {
-            qtyText = `${count} unidad${count !== 1 ? 'es' : ''}`;
+            qtyText = `${count} pieza${count !== 1 ? 's' : ''}`;
         }
 
         const isOutOfStock = count <= 0;
@@ -601,11 +601,11 @@ function confirmSubtractBodegaItem() {
         saveBodegaData(itemToSubtract);
         renderBodegaList();
         closeModal('subtract-item-modal');
-        showToast(`Se tomaron ${unitsToSubtract} unidades de ${itemToSubtract}`, 'success');
+        showToast(`Se tomaron ${unitsToSubtract} piezas de ${itemToSubtract}`, 'success');
     } else if (bodegaCounts[itemToSubtract] && bodegaCounts[itemToSubtract] > 0) {
-        showToast(`Solo hay ${bodegaCounts[itemToSubtract]} unidades disponibles`, 'error');
+        showToast(`Solo hay ${bodegaCounts[itemToSubtract]} piezas disponibles`, 'error');
     } else {
-        showToast('No hay unidades disponibles', 'error');
+        showToast('No hay piezas disponibles', 'error');
     }
 }
 
@@ -651,7 +651,7 @@ function checkLowStock() {
 
         lowStock.forEach(item => {
             const li = document.createElement('li');
-            li.textContent = `${item}: ${bodegaCounts[item] || 0} unidades`;
+            li.textContent = `${item}: ${bodegaCounts[item] || 0} piezas`;
             listContainer.appendChild(li);
         });
 
@@ -727,7 +727,7 @@ function selectAddRadioItem(item) {
     } else {
         inputsContainer.innerHTML = `
             <div class="input-group">
-                <label for="add-simple-units">Unidades</label>
+                <label for="add-simple-units">Piezas</label>
                 <input type="number" id="add-simple-units" min="0" value="0" placeholder="0">
             </div>
         `;
@@ -759,7 +759,7 @@ function saveAddBodegaItem() {
     saveBodegaData(item);
     closeModal('add-item-modal');
     renderBodegaList();
-    showToast(`Se agregaron ${totalToAdd} unidades a ${item}`, 'success');
+    showToast(`Se agregaron ${totalToAdd} piezas a ${item}`, 'success');
 }
 
 
