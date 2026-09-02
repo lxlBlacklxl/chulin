@@ -52,12 +52,12 @@ const monthNames = [
 ];
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAL6EaHEls_t5wV6rPHazjgJm73OZE2Ppw",
-  authDomain: "inventario-715bf01d.firebaseapp.com",
-  projectId: "inventario-715bf01d",
-  storageBucket: "inventario-715bf01d.firebasestorage.app",
-  messagingSenderId: "42478095151",
-  appId: "1:42478095151:web:56fa23dd539b031226efda"
+    apiKey: "AIzaSyAL6EaHEls_t5wV6rPHazjgJm73OZE2Ppw",
+    authDomain: "inventario-715bf01d.firebaseapp.com",
+    projectId: "inventario-715bf01d",
+    storageBucket: "inventario-715bf01d.firebasestorage.app",
+    messagingSenderId: "42478095151",
+    appId: "1:42478095151:web:56fa23dd539b031226efda"
 };
 
 
@@ -81,12 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData().then(() => {
         initShowInventory();
         buildAddRadioList();
-        
+
         // Set Calendar to Current System Date
         const today = new Date();
         currentYear = today.getFullYear();
         currentMonth = today.getMonth();
-        
+
         // Bind Back Button handler for physical key simulation / popstate
         window.addEventListener('popstate', handleHardwareBack);
         // Push initial state
@@ -288,7 +288,7 @@ function navigateTo(screenId) {
         } else if (screenId === 'list') {
             renderEventsList();
         }
-        
+
         // Handle history states for back action
         const state = { screen: screenId };
         if (window.history.state?.screen !== screenId) {
@@ -301,7 +301,7 @@ function navigateTo(screenId) {
 function handleHardwareBack(event) {
     if (!event.state) return;
     const targetScreen = event.state.screen;
-    
+
     // Custom back paths from MainActivity.kt
     if (currentScreen === 'details') {
         navigateTo('calendar');
@@ -321,7 +321,7 @@ function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     let icon = 'info';
     if (type === 'success') icon = 'check_circle';
     if (type === 'error') icon = 'error';
@@ -330,9 +330,9 @@ function showToast(message, type = 'info') {
         <span class="material-icons">${icon}</span>
         <span>${message}</span>
     `;
-    
+
     container.appendChild(toast);
-    
+
     // Auto remove
     setTimeout(() => {
         toast.classList.add('toast-exit');
@@ -345,7 +345,7 @@ function showToast(message, type = 'info') {
 // SYSTEM MODALS UTILS
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('modal-active');
-    
+
     // Reset specific forms
     if (modalId === 'new-item-modal') {
         document.getElementById('new-item-name').value = '';
@@ -361,7 +361,7 @@ function closeModal(modalId) {
 // --- 2. HORA DEL SHOW (INVENTORY) LOGIC ---
 function initShowInventory() {
     const specificItems = ["Magia pato", "Transportadora con paloma", "Conejo"];
-    
+
     // Combine lists, unique elements, case-insensitive sort
     const uniqueItems = Array.from(new Set([...commonInventoryItems, ...specificItems]));
     showItems = uniqueItems.sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
@@ -408,7 +408,7 @@ function renderShowInventory() {
             const subStates = checkedSubmenuItems[item];
             const children = Object.keys(subStates);
             const checkedCount = children.filter(c => subStates[c]).length;
-            
+
             if (checkedCount === 0) {
                 cardClass += ' empty';
             } else if (checkedCount === children.length) {
@@ -426,7 +426,7 @@ function renderShowInventory() {
         card.className = cardClass;
         card.innerHTML = `<span class="inventory-card-title">${item}</span>`;
         card.onclick = () => handleInventoryCardClick(item);
-        
+
         grid.appendChild(card);
     });
 
@@ -447,7 +447,7 @@ function handleInventoryCardClick(item) {
 function openSubmenuModal(parentItem) {
     activeSubmenuParent = parentItem;
     document.getElementById('submenu-modal-title').textContent = parentItem;
-    
+
     renderSubmenuItems();
     openModal('submenu-modal');
 }
@@ -497,7 +497,7 @@ function closeSubmenuModal() {
 function validateInventoryReady() {
     // Check all simple items
     const allSimpleChecked = Object.values(checkedSimpleItems).every(val => val === true);
-    
+
     // Check all submenus
     let allSubmenusChecked = true;
     for (let parent in checkedSubmenuItems) {
@@ -527,10 +527,10 @@ function confirmEndDay() {
     resetCheckedStates();
     saveShowState();
     closeModal('confirm-end-day-modal');
-    
+
     document.getElementById('show-ready-message').classList.add('hidden');
     document.getElementById('btn-inventory-ready').disabled = true;
-    
+
     renderShowInventory();
     showToast('¡Día terminado! Inventario restablecido.', 'success');
 }
@@ -543,7 +543,7 @@ function renderBodegaList() {
 
     bodegaItems.forEach(item => {
         const count = bodegaCounts[item] || 0;
-        
+
         let qtyText = '';
         if (item.startsWith("Taza")) {
             const boxes = Math.floor(count / 12);
@@ -566,7 +566,7 @@ function renderBodegaList() {
             <span class="table-row-name">${item}</span>
             <div class="table-row-actions">
                 <span class="${qtyClass}">${qtyText}</span>
-                <button class="row-action-btn" onclick="decrementBodegaItem('${item}')" ${isOutOfStock ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
+                <button class="row-action-btn" onclick="promptSubtractBodegaItem('${item}')" ${isOutOfStock ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>
                     <span class="material-icons">remove</span>
                 </button>
                 <button class="row-action-btn btn-delete-item" onclick="promptDeleteBodegaItem('${item}')">
@@ -578,11 +578,34 @@ function renderBodegaList() {
     });
 }
 
-function decrementBodegaItem(item) {
-    if (bodegaCounts[item] && bodegaCounts[item] > 0) {
-        bodegaCounts[item]--;
-        saveBodegaData(item);
+let itemToSubtract = '';
+
+function promptSubtractBodegaItem(item) {
+    itemToSubtract = item;
+    document.getElementById('subtract-item-name-placeholder').textContent = item;
+    document.getElementById('subtract-units').value = 1;
+    openModal('subtract-item-modal');
+}
+
+function confirmSubtractBodegaItem() {
+    const unitsInput = document.getElementById('subtract-units');
+    const unitsToSubtract = parseInt(unitsInput.value) || 0;
+
+    if (unitsToSubtract <= 0) {
+        showToast('Ingrese una cantidad válida mayor que 0', 'error');
+        return;
+    }
+
+    if (bodegaCounts[itemToSubtract] && bodegaCounts[itemToSubtract] >= unitsToSubtract) {
+        bodegaCounts[itemToSubtract] -= unitsToSubtract;
+        saveBodegaData(itemToSubtract);
         renderBodegaList();
+        closeModal('subtract-item-modal');
+        showToast(`Se tomaron ${unitsToSubtract} unidades de ${itemToSubtract}`, 'success');
+    } else if (bodegaCounts[itemToSubtract] && bodegaCounts[itemToSubtract] > 0) {
+        showToast(`Solo hay ${bodegaCounts[itemToSubtract]} unidades disponibles`, 'error');
+    } else {
+        showToast('No hay unidades disponibles', 'error');
     }
 }
 
@@ -599,23 +622,23 @@ function confirmDeleteBodegaItem() {
         // 1. Remove from local arrays
         bodegaItems = bodegaItems.filter(i => i !== itemToDelete);
         delete bodegaCounts[itemToDelete];
-        
+
         // 2. Remove from Firestore if active
         if (isFirebaseActive) {
             db.collection('bodega').doc(itemToDelete).delete()
                 .catch(err => console.error("Error al eliminar artículo de Firestore:", err));
         }
-        
+
         // 3. Save local data
         localStorage.setItem('bodega_items', JSON.stringify(bodegaItems));
         localStorage.setItem('bodega_counts', JSON.stringify(bodegaCounts));
-        
+
         // 4. Update UI
         closeModal('confirm-delete-item-modal');
         renderBodegaList();
         buildAddRadioList();
         showToast(`Artículo "${itemToDelete}" eliminado`, 'info');
-        
+
         itemToDelete = '';
     }
 }
@@ -625,13 +648,13 @@ function checkLowStock() {
     if (lowStock.length > 0) {
         const listContainer = document.getElementById('low-stock-list');
         listContainer.innerHTML = '';
-        
+
         lowStock.forEach(item => {
             const li = document.createElement('li');
             li.textContent = `${item}: ${bodegaCounts[item] || 0} unidades`;
             listContainer.appendChild(li);
         });
-        
+
         openModal('low-stock-modal');
     }
 }
@@ -652,7 +675,7 @@ function createNewBodegaItem() {
 
     bodegaItems.push(name);
     bodegaCounts[name] = 0;
-    
+
     saveNewBodegaItem(name);
     closeModal('new-item-modal');
     renderBodegaList();
@@ -718,7 +741,7 @@ function saveAddBodegaItem() {
     if (item.startsWith("Taza") || item.includes("burbujas") || item.includes("squishi") || item.includes("Burbujas Ch")) {
         const boxesInput = document.getElementById('add-boxes');
         const unitsPerBoxInput = document.getElementById('add-units-per-box');
-        
+
         const boxes = parseInt(boxesInput.value) || 0;
         const unitsPerBox = parseInt(unitsPerBoxInput.value) || 0;
         totalToAdd = boxes * unitsPerBox;
@@ -814,7 +837,7 @@ function formatDateString(day, month, year) {
 
 function selectCalendarDate(day, month, year) {
     selectedEventDate = formatDateString(day, month, year);
-    
+
     // Highlight day cell
     const cells = document.querySelectorAll('.datepicker-day:not(.empty-day)');
     cells.forEach(cell => {
@@ -867,7 +890,7 @@ function showSelectedDateBox() {
             confirmBtn.style.backgroundColor = '#FF5252';
             confirmBtn.style.color = '#FFFFFF';
         }
-        
+
         dateValText.className = `status-date-val ${statusColor}`;
         descText.textContent = statusText;
         descText.className = `status-desc-val ${statusColor}`;
@@ -890,16 +913,16 @@ function hideSelectedDateBox() {
 
 function proceedToEventDetails() {
     navigateTo('details');
-    
+
     // Set pre-filled header date
     document.getElementById('details-event-date').textContent = `Fecha: ${selectedEventDate}`;
-    
+
     // Clear details inputs
     document.getElementById('input-event-name').value = '';
     document.getElementById('input-event-time').value = '';
     document.getElementById('input-event-location').value = '';
     document.getElementById('input-event-reminder').checked = false;
-    
+
     validateDetailsForm();
 }
 
@@ -909,7 +932,7 @@ function validateDetailsForm() {
     const name = document.getElementById('input-event-name').value.trim();
     const time = document.getElementById('input-event-time').value.trim();
     const location = document.getElementById('input-event-location').value.trim();
-    
+
     const saveBtn = document.getElementById('btn-save-event');
     saveBtn.disabled = !(name !== '' && time !== '' && location !== '');
 }
@@ -925,7 +948,7 @@ function handleSaveEvent() {
 
 function confirmSaveEvent() {
     closeModal('event-saturation-modal');
-    
+
     const name = document.getElementById('input-event-name').value.trim();
     const time = document.getElementById('input-event-time').value.trim();
     const location = document.getElementById('input-event-location').value.trim();
